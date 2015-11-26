@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<beans default-destroy-method="destroy" default-init-method="afterPropertiesSet"
+       xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <!-- Listeners -->
+    <bean id="reportSummaryMessageListener"
+          class="com.liferay.symposium.portlet.report.messaging.ReportSectionSummaryMessageListener"/>
+    <bean id="reportROIMessageListener"
+          class="com.liferay.symposium.portlet.report.messaging.ReportSectionROIMessageListener"/>
+    <bean id="reportRecommendationsMessageListener"
+          class="com.liferay.symposium.portlet.report.messaging.ReportSectionRecommendationsMessageListener"/>
+    <bean id="reportMetricsMessageListener"
+          class="com.liferay.symposium.portlet.report.messaging.ReportSectionMetricsMessageListener"/>
+    <bean id="reportCostsMessageListener"
+          class="com.liferay.symposium.portlet.report.messaging.ReportSectionCostsMessageListener"/>
+
+    <!-- Destinos -->
+    <bean id="reportSummaryDestination" class="com.liferay.portal.kernel.messaging.ParallelDestination">
+        <property name="name" value="symposium/report-section-summary"/>
+        <property name="workersCoreSize" value="5"/>
+        <property name="workersMaxSize" value="5"/>
+    </bean>
+    <bean id="reportROIDestination" class="com.liferay.portal.kernel.messaging.ParallelDestination">
+        <property name="name" value="symposium/report-section-roi"/>
+        <property name="workersCoreSize" value="5"/>
+        <property name="workersMaxSize" value="5"/>
+    </bean>
+    <bean id="reportRecommendationsDestination" class="com.liferay.portal.kernel.messaging.ParallelDestination">
+        <property name="name" value="symposium/report-section-recommendations"/>
+        <property name="workersCoreSize" value="5"/>
+        <property name="workersMaxSize" value="5"/>
+    </bean>
+    <bean id="reportMetricsDestination" class="com.liferay.portal.kernel.messaging.ParallelDestination">
+        <property name="name" value="symposium/report-section-metrics"/>
+        <property name="workersCoreSize" value="5"/>
+        <property name="workersMaxSize" value="5"/>
+    </bean>
+    <bean id="reportCostsDestination" class="com.liferay.portal.kernel.messaging.ParallelDestination">
+        <property name="name" value="symposium/report-section-costs"/>
+        <property name="workersCoreSize" value="5"/>
+        <property name="workersMaxSize" value="5"/>
+    </bean>
+
+    <!-- Configurador -->
+    <bean id="messagingConfigurator" class="com.liferay.portal.kernel.messaging.config.PluginMessagingConfigurator">
+        <property name="messageListeners">
+            <map key-type="java.lang.String" value-type="java.util.List">
+                <entry key="symposium/report-section-summary">
+                    <list value-type="com.liferay.portal.kernel.messaging.MessageListener">
+                        <ref bean="reportSummaryMessageListener"/>
+                    </list>
+                </entry>
+                <entry key="symposium/report-section-roi">
+                    <list value-type="com.liferay.portal.kernel.messaging.MessageListener">
+                        <ref bean="reportROIMessageListener"/>
+                    </list>
+                </entry>
+                <entry key="symposium/report-section-recommendations">
+                    <list value-type="com.liferay.portal.kernel.messaging.MessageListener">
+                        <ref bean="reportRecommendationsMessageListener"/>
+                    </list>
+                </entry>
+                <entry key="symposium/report-section-metrics">
+                    <list value-type="com.liferay.portal.kernel.messaging.MessageListener">
+                        <ref bean="reportMetricsMessageListener"/>
+                    </list>
+                </entry>
+                <entry key="symposium/report-section-costs">
+                    <list value-type="com.liferay.portal.kernel.messaging.MessageListener">
+                        <ref bean="reportCostsMessageListener"/>
+                    </list>
+                </entry>
+            </map>
+        </property>
+        <property name="destinations">
+            <list>
+                <ref bean="reportSummaryDestination"/>
+                <ref bean="reportROIDestination"/>
+                <ref bean="reportRecommendationsDestination"/>
+                <ref bean="reportMetricsDestination"/>
+                <ref bean="reportCostsDestination"/>
+            </list>
+        </property>
+    </bean>
+</beans>

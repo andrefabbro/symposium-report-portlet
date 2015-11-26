@@ -1,0 +1,15 @@
+package com.liferay.symposium.portlet.report.messaging;
+
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+
+public class ReportSectionSummaryMessageListener extends AbstractCreateReportSectionMessageListener {
+
+    protected static final Log _log = LogFactoryUtil.getLog(ReportSectionSummaryMessageListener.class);
+
+    @Override
+    protected Log getLog() { return _log; }
+
+    @Override
+    public String getSectionName() { return "summary"; }
+}
