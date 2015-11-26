@@ -3,18 +3,10 @@ package com.liferay.symposium.portlet.report.messaging;
 import com.liferay.counter.service.CounterLocalServiceUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.messaging.Message;
-import com.liferay.portal.kernel.messaging.MessageListener;
-import com.liferay.portal.kernel.messaging.MessageListenerException;
+import com.liferay.portal.kernel.messaging.*;
 import com.liferay.symposium.portlet.report.model.Report;
 import com.liferay.symposium.portlet.report.service.ReportLocalServiceUtil;
 import com.liferay.symposium.portlet.report.util.ReportStatus;
-import org.restlet.Client;
-import org.restlet.Request;
-import org.restlet.Response;
-import org.restlet.data.Method;
-import org.restlet.data.Protocol;
-import org.restlet.data.Reference;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,6 +15,8 @@ import java.util.List;
 public class ReportMessageListener implements MessageListener {
 
     private static final Log _log = LogFactoryUtil.getLog(ReportMessageListener.class);
+
+    private static final String DESTINATION_NAME = "symposium/report_create";
 
     @Override
     public void receive(Message message) throws MessageListenerException {
@@ -35,63 +29,24 @@ public class ReportMessageListener implements MessageListener {
 
     private void _doReceive(Message message) {
 
-        _log.info("=======================================================================");
-        _log.info("Iniciando o processamento da mensagem para " + this.getClass().getName());
-        _log.info("=======================================================================");
-
-        long processStart = 0L;
-        long processEnd = 0L;
-
-        long start;
-        long end;
+        _log.info("Iniciando o processamento da mensagem para " + this.getClass().getCanonicalName());
 
         try {
             // cria alguns relatorios de exemplo e guarda no banco
             List<Report> reports = _makeReports(5);
 
-            _log.info("------------------------[ INICIO ]-------------------------------");
-            processStart = System.currentTimeMillis();
-
             for (Report r : reports) {
                 if (r.getReportStatus().equals(ReportStatus.STATUS_PENDING)) {
-                    _log.info("Processando relatorio " + r.getReportName() + "...");
 
-                    start = System.currentTimeMillis();
+                    _sendJob(r);
 
-                    r.setReportStatus(ReportStatus.STATUS_PROCESSING);
-                    ReportLocalServiceUtil.updateReport(r);
-
-                    boolean result = Boolean.FALSE;
-
-                    // gera cada secao do relatorio a partir do servico remoto
-                    if (r.getSectionSummary()) result = _process(r, "summary");
-                    if (r.getSectionCosts()) result = _process(r, "costs");
-                    if (r.getSectionMetrics()) result = _process(r, "metrics");
-                    if (r.getSectionROI()) result = _process(r, "roi");
-                    if (r.getSectionRecommendations()) result = _process(r, "recommendations");
-
-                    if (result)
-                        r.setReportStatus(ReportStatus.STATUS_COMPLETE);
-                    else
-                        r.setReportStatus(ReportStatus.STATUS_ERROR);
-
-                    ReportLocalServiceUtil.updateReport(r);
-
-                    end = System.currentTimeMillis();
-
-                    _log.info(r.getReportName() + " finalizou em " + ((end - start) / 1000) + " segundos.");
+                    _log.info("Job para o relatorio id " + r.getReportId() + " enviado.");
                 }
             }
-
-            processEnd = System.currentTimeMillis();
-
-            _log.info("------------------------[ FIM ]-------------------------------");
 
         } catch (Exception e) {
             _log.error("Houve um erro no processamento dos relatorios.", e);
         }
-
-        _log.info("Tempo de execucao total: " + ((processEnd - processStart) / 1000));
     }
 
     private List<Report> _makeReports(int makeCount) {
@@ -116,11 +71,11 @@ public class ReportMessageListener implements MessageListener {
                 r.setSectionMetrics(true);
                 r.setSectionRecommendations(true);
 
-                // auditing fields
+                // campos de auditoria
                 r.setCreateDate(new Date());
                 r.setModifiedDate(new Date());
 
-                // status inicial
+                // status inicial do relatorio
                 r.setReportStatus(ReportStatus.STATUS_PENDING);
 
                 ReportLocalServiceUtil.addReport(r);
@@ -135,31 +90,34 @@ public class ReportMessageListener implements MessageListener {
         return reports;
     }
 
-    private boolean _process(Report report, String section) {
-        boolean result = Boolean.FALSE;
+    private void _sendJob(Report report) {
 
-        try {
-            Client client = new Client(Protocol.HTTP);
+        // verifica se ja existe um destino registrado com esse topico. Se nao existir, cria sob demanda
+        if (!MessageBusUtil.hasMessageListener(DESTINATION_NAME)) {
 
-            Reference reference = new Reference();
-            reference.setProtocol(Protocol.HTTP);
-            reference.setHostDomain("localhost");
-            reference.setHostPort(9090);
-            reference.setPath("/relatorio/processar/" + report.getReportId() + "/secao/" + section);
+            _log.info("Criando destino paralelo para o message listener de criacao de relatorios...");
 
-            Request request = new Request(Method.GET, reference);
+            ParallelDestination destination = new ParallelDestination();
+            destination.setName(DESTINATION_NAME);
+            destination.setWorkersCoreSize(5);
+            destination.setWorkersMaxSize(5);
+            destination.setMaximumQueueSize(10000);
 
-            _log.info("request: " + request.toString());
+            // essa chamada e necessaria para aplicar os valores no destino, caso contrario carrega o default
+            destination.afterPropertiesSet();
 
-            Response response = client.handle(request);
+            MessageBusUtil.addDestination(destination);
+            MessageBusUtil.registerMessageListener(DESTINATION_NAME, new CreateReportMessageListener());
 
-            _log.info("response: " + response.getEntity().getText());
-
-            result = Boolean.TRUE;
-        } catch (Exception e) {
-            _log.error("Erro ao processar secao " + section + " do relatorio " + report.getReportName(), e);
+            _log.info("Destino incluido.");
         }
 
-        return result;
+        // cria a mensagem
+        Message message = new Message();
+        message.put("reportId", report.getReportId());
+        message.setDestinationName(DESTINATION_NAME);
+
+        // inclui a mensagem no barramento
+        MessageBusUtil.sendMessage(DESTINATION_NAME, message);
     }
 }
