@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping default-lazy="false" auto-import="false">
+	<import class="com.liferay.symposium.portlet.report.model.Report" />
+	<class name="com.liferay.symposium.portlet.report.model.impl.ReportImpl" table="SYMPOSIUM_Report">
+		<cache usage="read-write" />
+		<id name="reportId" type="long">
+			<generator class="assigned" />
+		</id>
+		<property name="uuid" type="com.liferay.portal.dao.orm.hibernate.StringType" column="uuid_" />
+		<property name="groupId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+		<property name="companyId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+		<property name="userId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+		<property name="userName" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="createDate" type="org.hibernate.type.TimestampType" />
+		<property name="modifiedDate" type="org.hibernate.type.TimestampType" />
+		<property name="reportName" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="reportStatus" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="startTime" type="org.hibernate.type.TimestampType" />
+		<property name="endTime" type="org.hibernate.type.TimestampType" />
+		<property name="sectionSummary" type="com.liferay.portal.dao.orm.hibernate.BooleanType" />
+		<property name="sectionSummaryStatus" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="sectionCosts" type="com.liferay.portal.dao.orm.hibernate.BooleanType" />
+		<property name="sectionCostsStatus" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="sectionROI" type="com.liferay.portal.dao.orm.hibernate.BooleanType" />
+		<property name="sectionROIStatus" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="sectionMetrics" type="com.liferay.portal.dao.orm.hibernate.BooleanType" />
+		<property name="sectionMetricsStatus" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="sectionRecommendations" type="com.liferay.portal.dao.orm.hibernate.BooleanType" />
+		<property name="sectionRecommendationsStatus" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+	</class>
+</hibernate-mapping>

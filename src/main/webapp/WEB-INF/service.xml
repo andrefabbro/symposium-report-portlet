@@ -1,0 +1,57 @@
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 6.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_6_2_0.dtd">
+<service-builder package-path="com.liferay.symposium.portlet.report">
+
+    <namespace>SYMPOSIUM</namespace>
+
+    <entity name="Report" uuid="true" local-service="true" remote-service="false">
+
+        <!-- PK fields -->
+
+        <column name="reportId" type="long" primary="true"/>
+
+        <!-- Group instance -->
+
+        <column name="groupId" type="long"/>
+
+        <!-- Audit fields -->
+
+        <column name="companyId" type="long"/>
+        <column name="userId" type="long"/>
+        <column name="userName" type="String"/>
+        <column name="createDate" type="Date"/>
+        <column name="modifiedDate" type="Date"/>
+
+        <!-- report fields -->
+
+        <column name="reportName" type="String"/>
+        <column name="reportStatus" type="String"/>
+        <column name="startTime" type="Date"/>
+        <column name="endTime" type="Date"/>
+
+        <!-- report section details -->
+
+        <column name="sectionSummary" type="boolean"/>
+        <column name="sectionSummaryStatus" type="String"/>
+        <column name="sectionCosts" type="boolean"/>
+        <column name="sectionCostsStatus" type="String"/>
+        <column name="sectionROI" type="boolean"/>
+        <column name="sectionROIStatus" type="String"/>
+        <column name="sectionMetrics" type="boolean"/>
+        <column name="sectionMetricsStatus" type="String"/>
+        <column name="sectionRecommendations" type="boolean"/>
+        <column name="sectionRecommendationsStatus" type="String"/>
+
+        <!-- Order -->
+
+        <order by="asc">
+            <order-column name="reportId"/>
+        </order>
+
+        <!-- Finder methods -->
+
+        <finder name="ReportStatus" return-type="Collection">
+            <finder-column name="reportStatus"/>
+        </finder>
+
+    </entity>
+</service-builder>

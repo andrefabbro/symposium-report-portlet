@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<model-hints>
+	<model name="com.liferay.symposium.portlet.report.model.Report">
+		<field name="uuid" type="String" />
+		<field name="reportId" type="long" />
+		<field name="groupId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="userName" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="modifiedDate" type="Date" />
+		<field name="reportName" type="String" />
+		<field name="reportStatus" type="String" />
+		<field name="startTime" type="Date" />
+		<field name="endTime" type="Date" />
+		<field name="sectionSummary" type="boolean" />
+		<field name="sectionSummaryStatus" type="String" />
+		<field name="sectionCosts" type="boolean" />
+		<field name="sectionCostsStatus" type="String" />
+		<field name="sectionROI" type="boolean" />
+		<field name="sectionROIStatus" type="String" />
+		<field name="sectionMetrics" type="boolean" />
+		<field name="sectionMetricsStatus" type="String" />
+		<field name="sectionRecommendations" type="boolean" />
+		<field name="sectionRecommendationsStatus" type="String" />
+	</model>
+</model-hints>
