@@ -5,6 +5,16 @@
     <portlet>
         <portlet-name>symposium-report-portlet</portlet-name>
         <icon>/icon.png</icon>
+        <scheduler-entry>
+            <scheduler-description>Mensage Listener usado para processar requisicoes para reports em um determinado intervalo de tempo.</scheduler-description>
+            <scheduler-event-listener-class>com.liferay.symposium.portlet.report.messaging.ReportMessageListener</scheduler-event-listener-class>
+            <trigger>
+                <simple>
+                    <simple-trigger-value>1</simple-trigger-value>
+                    <time-unit>minute</time-unit>
+                </simple>
+            </trigger>
+        </scheduler-entry>
         <header-portlet-css>/css/main.css</header-portlet-css>
         <footer-portlet-javascript>/js/main.js</footer-portlet-javascript>
     </portlet>
