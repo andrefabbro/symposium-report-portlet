@@ -2,6 +2,7 @@ package com.liferay.symposium.portlet.report.messaging;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.messaging.Message;
+import com.liferay.portal.kernel.messaging.MessageBusUtil;
 import com.liferay.portal.kernel.messaging.MessageListener;
 import com.liferay.portal.kernel.messaging.MessageListenerException;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -33,15 +34,17 @@ public abstract class AbstractCreateReportSectionMessageListener implements Mess
 
         try {
 
-            // pega o id do relatorio na mensagem
             long reportId = GetterUtil.getLong(message.get("reportId"));
 
-            // recupera o relatorio a partir do banco
+            // recupera o relatorio do database
             Report r = _getReport(reportId);
 
-            getLog().info("Processando sessao " + getSectionName() + " do relatorio " + r.getReportName() + "...");
+            getLog().error("Processando sessao " + getSectionName() + " do relatorio " + r.getReportName());
 
-            _process(r);
+            boolean result = _process(r);
+
+            // envia mensagem para o barramento consolidar o relatorio
+            _callAssembler(r, !result);
 
         } catch (Exception e) {
             getLog().error("Erro ao gerar secao " + getSectionName() + " do relatorio", e);
@@ -55,10 +58,12 @@ public abstract class AbstractCreateReportSectionMessageListener implements Mess
         } catch (Exception e) {
             getLog().error("Falha ao retornar relatorio com o ID " + reportId, e);
         }
+
         return null;
     }
 
-    private void _process(Report report) {
+    private boolean _process(Report report) {
+        boolean result = Boolean.FALSE;
 
         try {
             Client client = new Client(Protocol.HTTP);
@@ -77,8 +82,26 @@ public abstract class AbstractCreateReportSectionMessageListener implements Mess
 
             getLog().info("response: " + response.getEntity().getText());
 
+            result = Boolean.TRUE;
         } catch (Exception e) {
             getLog().error("Erro ao processar secao " + getSectionName() + " do relatorio " + report.getReportName(), e);
         }
+
+        return result;
+    }
+
+    private void _callAssembler(Report report, boolean error) {
+
+        String destinationName = "symposium/report-assembler";
+
+        // cria a mensagem
+        Message message = new Message();
+        message.put("reportId", report.getReportId());
+        message.put("section", getSectionName());
+        message.put("error", error);
+        message.setDestinationName(destinationName);
+
+        // envia para o barramento
+        MessageBusUtil.sendMessage(destinationName, message);
     }
 }

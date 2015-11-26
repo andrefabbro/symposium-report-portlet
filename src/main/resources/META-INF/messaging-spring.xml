@@ -4,6 +4,9 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
     <!-- Listeners -->
+    <bean id="reportAssemblerMessageListener"
+          class="com.liferay.symposium.portlet.report.messaging.ReportAssemblerMessageListener"/>
+
     <bean id="reportSummaryMessageListener"
           class="com.liferay.symposium.portlet.report.messaging.ReportSectionSummaryMessageListener"/>
     <bean id="reportROIMessageListener"
@@ -16,6 +19,12 @@
           class="com.liferay.symposium.portlet.report.messaging.ReportSectionCostsMessageListener"/>
 
     <!-- Destinos -->
+    <bean id="reportAssemblerDestination" class="com.liferay.portal.kernel.messaging.ParallelDestination">
+        <property name="name" value="symposium/report-assembler"/>
+        <property name="workersCoreSize" value="1"/>
+        <property name="workersMaxSize" value="1"/>
+    </bean>
+
     <bean id="reportSummaryDestination" class="com.liferay.portal.kernel.messaging.ParallelDestination">
         <property name="name" value="symposium/report-section-summary"/>
         <property name="workersCoreSize" value="5"/>
@@ -42,10 +51,16 @@
         <property name="workersMaxSize" value="5"/>
     </bean>
 
+
     <!-- Configurador -->
     <bean id="messagingConfigurator" class="com.liferay.portal.kernel.messaging.config.PluginMessagingConfigurator">
         <property name="messageListeners">
             <map key-type="java.lang.String" value-type="java.util.List">
+                <entry key="symposium/report-assembler">
+                    <list value-type="com.liferay.portal.kernel.messaging.MessageListener">
+                        <ref bean="reportAssemblerMessageListener"/>
+                    </list>
+                </entry>
                 <entry key="symposium/report-section-summary">
                     <list value-type="com.liferay.portal.kernel.messaging.MessageListener">
                         <ref bean="reportSummaryMessageListener"/>
@@ -75,6 +90,7 @@
         </property>
         <property name="destinations">
             <list>
+                <ref bean="reportAssemblerDestination"/>
                 <ref bean="reportSummaryDestination"/>
                 <ref bean="reportROIDestination"/>
                 <ref bean="reportRecommendationsDestination"/>

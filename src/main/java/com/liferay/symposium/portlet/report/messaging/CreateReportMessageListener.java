@@ -28,6 +28,7 @@ public class CreateReportMessageListener implements MessageListener {
     }
 
     private void _doReceive(Message message) {
+
         try {
 
             Report r = _getReport(GetterUtil.getLong(message.get("reportId")));
@@ -39,18 +40,18 @@ public class CreateReportMessageListener implements MessageListener {
                 // atualiza o status para PROCESSING
                 r.setReportStatus(ReportStatus.STATUS_PROCESSING);
                 r.setStartTime(new Date());
+
+                // atualiza o status de cada uma das secoes conforme ativada ou nao
+                r.setSectionSummaryStatus(r.getSectionSummary() ? ReportStatus.STATUS_PROCESSING : ReportStatus.STATUS_COMPLETE);
+                r.setSectionROIStatus(r.getSectionROI() ? ReportStatus.STATUS_PROCESSING : ReportStatus.STATUS_COMPLETE);
+                r.setSectionRecommendationsStatus(r.getSectionRecommendations() ? ReportStatus.STATUS_PROCESSING : ReportStatus.STATUS_COMPLETE);
+                r.setSectionMetricsStatus(r.getSectionMetrics() ? ReportStatus.STATUS_PROCESSING : ReportStatus.STATUS_COMPLETE);
+                r.setSectionCostsStatus(r.getSectionCosts() ? ReportStatus.STATUS_PROCESSING : ReportStatus.STATUS_COMPLETE);
+
                 ReportLocalServiceUtil.updateReport(r);
 
-                boolean result = _process(r);
-
-                if (result)
-                    r.setReportStatus(ReportStatus.STATUS_COMPLETE);
-                else
-                    r.setReportStatus(ReportStatus.STATUS_ERROR);
-
-                ReportLocalServiceUtil.updateReport(r);
+                _process(r);
             }
-
         } catch (Exception e) {
             _log.error("Ocorreu um erro ao gerar o relatorio.", e);
         }
@@ -66,11 +67,9 @@ public class CreateReportMessageListener implements MessageListener {
         return null;
     }
 
-    private boolean _process(Report report) {
-
-        boolean result = Boolean.FALSE;
-
+    private void _process(Report report) {
         try {
+
             if (report.getSectionSummary())
                 _processSection(report, "summary");
 
@@ -89,8 +88,6 @@ public class CreateReportMessageListener implements MessageListener {
         } catch (Exception e) {
             _log.error("Falha ao criar relatorio, sera considerado com ERRO");
         }
-
-        return result;
     }
 
     private void _processSection(Report report, String section) throws IllegalAccessException, InstantiationException {
